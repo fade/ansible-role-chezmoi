@@ -7,4 +7,16 @@ chezmoi_users: []
 # chezmoi_users:
 #   - user: XXX
 #     repo: YYY [optional: dotfiles repository]
-#     start_timer: bool [optional, default 'false']
+#     start_timer: bool [optional, default '{{ chezmoi_update_timer_default }}']
+
+# Default state of the per-user update timer when a user entry omits
+# start_timer. true => the timer is enabled and started (dotfiles self-heal on
+# the chezmoi_update_cron schedule); false => the timer is stopped and
+# disabled. Override per user with start_timer, or globally here.
+chezmoi_update_timer_default: true
+
+# Force an immediate `chezmoi update` for each user at the end of the run, so a
+# re-provisioned host converges to the current dotfiles right away instead of
+# waiting for the next timer tick. The forced run goes through the same systemd
+# unit the timer uses, so it can never collide with a scheduled run.
+chezmoi_update_now: true

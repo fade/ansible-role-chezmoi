@@ -1,0 +1,19 @@
+#!/bin/sh
+# chezmoi-sync — force an immediate dotfiles sync for a user.
+#
+# Triggers the same systemd unit the scheduled timer uses
+# (chezmoi-update@<user>.service). systemd never runs two instances of one unit
+# at once, so a manual sync can never collide with a scheduled one: if a timed
+# run is in flight, this start joins it; otherwise it runs now. `systemctl
+# start` blocks until the oneshot finishes.
+#
+# Usage: chezmoi-sync [user]   (defaults to the invoking user)
+set -eu
+
+user="${1:-$(id -un)}"
+unit="chezmoi-update@${user}.service"
+
+if [ "$(id -u)" -ne 0 ]; then
+    exec sudo systemctl start "$unit"
+fi
+exec systemctl start "$unit"

@@ -7,11 +7,22 @@ galaxy_info:
   role_name: chezmoi
 
   min_ansible_version: '2.8'
+  # chezmoi is installed from the upstream release binary rather than a distro
+  # package, so the role is effectively distro-agnostic on any systemd Linux.
   platforms:
   - name: Debian
     versions:
     - all
   - name: Ubuntu
+    versions:
+    - all
+  - name: Fedora
+    versions:
+    - all
+  - name: EL
+    versions:
+    - all
+  - name: Archlinux
     versions:
     - all
   galaxy_tags:

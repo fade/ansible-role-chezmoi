@@ -65,6 +65,21 @@
     mode: '0644'
   notify: Reload daemons
 
+- name: Install the chezmoi-sync helper.
+  ansible.builtin.copy:
+    src: chezmoi-sync
+    dest: /usr/local/bin/chezmoi-sync
+    owner: root
+    group: root
+    mode: '0755'
+
+# Reload now (not just via the end-of-play handler) so the per-user timer
+# configuration and the optional immediate sync below can see freshly written
+# units on a first run.
+- name: Reload systemd so new units are known.
+  ansible.builtin.systemd:
+    daemon_reload: true
+
 - name: Initialize chezmoi for users.
   ansible.builtin.include_tasks: init.yml
   loop: '{{ chezmoi_users }}'

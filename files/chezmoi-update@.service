@@ -5,7 +5,12 @@ After=network.target
 [Service]
 Type=oneshot
 User=%i
-ExecStart=/usr/local/bin/chezmoi update
+# flock serializes against a manual `chezmoi update` run directly in a shell.
+# A scheduled run and a `systemctl start chezmoi-update@%i.service` (what the
+# chezmoi-sync wrapper issues) are already serialized by systemd, which never
+# runs two instances of one unit at once; the lock covers the raw-CLI case too.
+# /var/lock survives PrivateTmp and is writable by the unprivileged user.
+ExecStart=/usr/bin/flock --wait 600 /var/lock/chezmoi-update-%i.lock /usr/local/bin/chezmoi update
 
 # Hardening
 ProtectSystem=full
