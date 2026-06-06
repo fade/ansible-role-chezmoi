@@ -7,6 +7,11 @@
   - name: Determine latest GitHub release (local).
     delegate_to: localhost
     become: false
+    # Force a local connection for the delegated task: in a remote play the
+    # play's ssh settings would otherwise make this try to ssh to the control
+    # host (e.g. fade@localhost), which fails.
+    vars:
+      ansible_connection: local
     ansible.builtin.uri:
       url: https://api.github.com/repos/{{ chezmoi_repo }}/releases/latest
       body_format: json
