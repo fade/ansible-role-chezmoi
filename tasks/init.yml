@@ -12,12 +12,13 @@
     cmd: /usr/local/bin/chezmoi init --apply {{ item.repo | default('') }}
     creates: "{{ getent_passwd[item.user][4] }}/.local/share/chezmoi"
 
-- name: Set helper variable
-  ansible.builtin.set_fact:
-    enable_service: '{{ item.start_timer is defined and (item.start_timer | bool) }}'
-
 - name: Configure update systemd timer.
+  # start_timer is documented as optional (default false), but feeding an
+  # undefined value straight into the systemd task errors out. Default it so an
+  # entry that omits start_timer no longer fails the run.
+  vars:
+    timer_on: '{{ item.start_timer | default(false) | bool }}'
   ansible.builtin.systemd:
     name: chezmoi-update@{{ item.user }}.timer
-    state: '{{ item.start_timer | ternary("started", "stopped") }}'
-    enabled: '{{ item.start_timer }}'
+    state: '{{ timer_on | ternary("started", "stopped") }}'
+    enabled: '{{ timer_on }}'
