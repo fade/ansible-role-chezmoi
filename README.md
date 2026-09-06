@@ -75,9 +75,11 @@ chezmoi-sync [user]   # defaults to the invoking user
 It triggers the same systemd unit the timer uses
 (`chezmoi-update@<user>.service`). Because systemd never runs two instances of
 one unit at once, a manual sync can never collide with a scheduled one — if a
-timed run is in flight, the manual run joins it. The service additionally wraps
-`chezmoi update` in `flock`, so even a raw `chezmoi update` typed in a shell is
-serialized against the scheduled run.
+timed run is in flight, the manual run joins it.
+
+A raw `chezmoi update` typed straight into a shell is not covered by that, and
+never was: it bypasses the unit entirely. Use `chezmoi-sync` when you want a
+sync that cannot collide with the timer.
 
 Dependencies
 ------------
