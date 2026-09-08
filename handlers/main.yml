@@ -1,5 +1,6 @@
 ---
 # handlers file for chezmoi
 - name: Reload daemons
+  when: ansible_facts['service_mgr'] == 'systemd'
   ansible.builtin.systemd:
     daemon_reload: true

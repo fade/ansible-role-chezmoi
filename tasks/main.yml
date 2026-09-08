@@ -52,7 +52,12 @@
     mode: '0755'
   when: chezmoi_installed_version is not defined or chezmoi_installed_version != chezmoi_version
 
+# The scheduled update is a systemd unit, so everything about it is skipped
+# where systemd is not what runs the machine. FreeBSD is the case in hand: the
+# role otherwise fails writing to a directory that does not exist there, having
+# already installed chezmoi and applied the dotfiles perfectly well.
 - name: Add update systemd service.
+  when: ansible_facts['service_mgr'] == 'systemd'
   ansible.builtin.copy:
     src: chezmoi-update@.service
     dest: /etc/systemd/system/chezmoi-update@.service
@@ -62,6 +67,7 @@
   notify: Reload daemons
 
 - name: Add update systemd timer.
+  when: ansible_facts['service_mgr'] == 'systemd'
   ansible.builtin.template:
     src: chezmoi-update@.timer.j2
     dest: /etc/systemd/system/chezmoi-update@.timer
@@ -82,6 +88,7 @@
 # configuration and the optional immediate sync below can see freshly written
 # units on a first run.
 - name: Reload systemd so new units are known.
+  when: ansible_facts['service_mgr'] == 'systemd'
   ansible.builtin.systemd:
     daemon_reload: true
 

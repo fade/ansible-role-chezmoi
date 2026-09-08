@@ -13,6 +13,7 @@
     creates: "{{ getent_passwd[item.user][4] }}/.local/share/chezmoi"
 
 - name: Configure update systemd timer.
+  when: ansible_facts['service_mgr'] == 'systemd'
   vars:
     timer_on: '{{ (item.start_timer | default(chezmoi_update_timer_default)) | bool }}'
   ansible.builtin.systemd:
@@ -24,7 +25,9 @@
 # runs on first setup). Triggers the same unit the timer uses, so systemd
 # serializes it against any scheduled run; the oneshot blocks until it finishes.
 - name: Force an immediate dotfiles sync.
-  when: chezmoi_update_now | bool
+  when:
+    - chezmoi_update_now | bool
+    - ansible_facts['service_mgr'] == 'systemd'
   ansible.builtin.command:
     cmd: systemctl start chezmoi-update@{{ item.user }}.service
   changed_when: true
