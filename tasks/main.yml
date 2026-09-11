@@ -47,13 +47,13 @@
 
 - name: Download chezmoi.
   ansible.builtin.unarchive:
-    src: https://github.com/{{ chezmoi_repo }}/releases/download/{{ chezmoi_version }}/chezmoi_{{ chezmoi_version | regex_replace("^v", "") }}_linux_{{ go_arch }}.tar.gz
+    src: https://github.com/{{ chezmoi_repo }}/releases/download/{{ chezmoi_version }}/chezmoi_{{ chezmoi_version | regex_replace("^v", "") }}_{{ go_os }}_{{ go_arch }}.tar.gz
     dest: /usr/local/bin
     include:
     - chezmoi
     remote_src: true
     owner: root
-    group: root
+    group: '{{ root_group }}'
     mode: '0755'
   when: chezmoi_installed_version is not defined or chezmoi_installed_version != chezmoi_version
 
@@ -67,7 +67,7 @@
     src: chezmoi-update@.service
     dest: /etc/systemd/system/chezmoi-update@.service
     owner: root
-    group: root
+    group: '{{ root_group }}'
     mode: '0644'
   notify: Reload daemons
 
@@ -77,16 +77,20 @@
     src: chezmoi-update@.timer.j2
     dest: /etc/systemd/system/chezmoi-update@.timer
     owner: root
-    group: root
+    group: '{{ root_group }}'
     mode: '0644'
   notify: Reload daemons
 
+# Only where there is a systemd unit for it to start. Installed anywhere else
+# it is a command on the PATH that cannot work, and the error it gives names
+# systemctl rather than saying that this host has no scheduled sync at all.
 - name: Install the chezmoi-sync helper.
+  when: ansible_facts['service_mgr'] == 'systemd'
   ansible.builtin.copy:
     src: chezmoi-sync
     dest: /usr/local/bin/chezmoi-sync
     owner: root
-    group: root
+    group: '{{ root_group }}'
     mode: '0755'
 
 # Reload now (not just via the end-of-play handler) so the per-user timer

@@ -8,3 +8,27 @@ go_arch_map:
   armv6l: armv6
 
 go_arch: '{{ go_arch_map[ansible_architecture] | default(ansible_architecture) }}'
+
+# chezmoi publishes a release archive per operating system as well as per
+# architecture, and they are not interchangeable: a FreeBSD host handed the
+# linux build installs a file it cannot execute, and says so only later, as a
+# format error from whatever first tried to run chezmoi.
+go_os_map:
+  Linux: linux
+  FreeBSD: freebsd
+  OpenBSD: openbsd
+  NetBSD: netbsd
+  Darwin: darwin
+
+go_os: '{{ go_os_map[ansible_system] | default(ansible_system | lower) }}'
+
+# Root's own group. It is called root on Linux and wheel on the BSDs, and
+# naming the wrong one fails the copy outright rather than producing a file
+# with surprising ownership.
+root_group_map:
+  FreeBSD: wheel
+  OpenBSD: wheel
+  NetBSD: wheel
+  Darwin: wheel
+
+root_group: '{{ root_group_map[ansible_system] | default("root") }}'
