@@ -16,8 +16,13 @@
       url: https://api.github.com/repos/{{ chezmoi_repo }}/releases/latest
       body_format: json
     register: _github_release
-    until: _github_release.status == 200
+    # A request that fails outright returns no status at all, so comparing the
+    # key directly raises instead of retrying, which is the one situation the
+    # retry exists for. Defaulting it makes a failed attempt simply an attempt
+    # that has not succeeded yet.
+    until: (_github_release.status | default(0)) == 200
     retries: 5
+    delay: 5
 
   - name: Set chezmoi_version.
     ansible.builtin.set_fact:
